@@ -1,7 +1,28 @@
-class BenInteger < Struct.new(:value); end
-class BenString < Struct.new(:length, :value); end
-class BenList < Struct.new(:elements); end
-class BenDict < Struct.new(:elements); end
+require 'json'
+
+BenInteger = Struct.new(:value) do
+  def to_json(x)
+    value
+  end
+end
+
+BenString = Struct.new(:length, :value) do
+  def to_json(x)
+    value
+  end
+end
+
+BenList = Struct.new(:elements) do
+  def to_json(x)
+    JSON.dump(elements)
+  end
+end
+
+BenDict = Struct.new(:elements) do
+  def to_json(x)
+    JSON.dump(elements.map{|e|e.to_json(nil)}.each_slice(2).to_h)
+  end
+end
 
 class InvalidTokenError < StandardError
   def initialize(msg)
@@ -110,4 +131,7 @@ def getByteStringLength(str)
   end
 end
 
-p parseAll(File.read("bentest.txt"))
+tokens = parseAll(File.read(ARGV[0]))
+json = JSON.dump(tokens)
+
+if ARGV.size > 1 then File.write(ARGV[1],json) else puts json end
